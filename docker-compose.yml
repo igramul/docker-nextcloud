@@ -1,0 +1,60 @@
+version: '3.5'
+
+services:
+
+  nextcloud:
+    image: nextcloud:18
+    ports:
+      - 8080:80
+    links:
+      - postgres
+    volumes:
+      - ./nextcloud:/var/www/html
+    restart: always
+    environment:
+      - POSTGRES_USER=${NC_DB_USER}
+      - POSTGRES_PASSWORD=${NC_DB_USER_PASSWORD}
+      - POSTGRES_DB=${NC_DB}
+      - POSTGRES_HOST=postgres
+      - NEXTCLOUD_ADMIN_USER=${NC_ADMIN_USER}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NC_ADMIN_PASSWORD}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${NEXTCLOUD_TRUSTED_DOMAINS}
+      - REDIS_HOST=redis
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_NAME=${SMTP_NAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+      - MAIL_DOMAIN=${MAIL_DOMAIN}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES}
+
+  postgres:
+    container_name: postgres
+    restart: always
+    image: postgres:12
+    environment:
+      - POSTGRES_USER=${NC_DB_USER}
+      - POSTGRES_PASSWORD=${NC_DB_USER_PASSWORD}
+      - POSTGRES_DB=${NC_DB}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: pgadmin
+    restart: always
+    image: dpage/pgadmin4:4
+    ports:
+      - 81:80
+    links:
+      - postgres
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${NC_DB_USER_MAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${NC_DB_USER_PASSWORD}
+    depends_on:
+      - postgres
+
+  redis:
+    container_name: redis
+    restart: always
+    image: redis
